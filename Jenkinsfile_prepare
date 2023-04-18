@@ -53,7 +53,7 @@ pipeline {
           ],
           userRemoteConfigs: [[
             credentialsId: env.GIT_CREDENTIAL_ID,
-            url: 'https://github.com/shivangiverma369/vagrant-private'
+            url: '<git-repo-url>'
           ]]
         ])
         script {commitId = sh(returnStdout: true, script: 'git rev-parse --short HEAD')}
