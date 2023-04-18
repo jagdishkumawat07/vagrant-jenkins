@@ -22,7 +22,7 @@ case "$COMPONENT" in
 ubuntu)
     mkdir -p $ubuntu
     cd $ubuntu
-    curl -H "Authorization: token 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" -o Vagrantfile https://raw.githubusercontent.com/shivangiverma369/vagrant-private/main/ubuntu/Vagrantfile
+    curl -H "Authorization: token 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" -o Vagrantfile https://raw.githubusercontent.com/jagdishawat07/vagrant-private/main/ubuntu/Vagrantfile
     vagrant up
     ;;
 ubuntu_clean-up)
@@ -32,7 +32,7 @@ ubuntu_clean-up)
 redhat)
     mkdir -p $redhat
     cd $redhat
-    curl -H "Authorization: token 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" -o Vagrantfile https://raw.githubusercontent.com/shivangiverma369/vagrant-private/main/redhat/Vagrantfile
+    curl -H "Authorization: token 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" -o Vagrantfile https://raw.githubusercontent.com/jagdishkumawat07/vagrant-private/main/redhat/Vagrantfile
     vagrant up
     ;;
 redhat_clean-up)
