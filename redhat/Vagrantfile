@@ -1,0 +1,32 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+
+  # Specify the box to use
+  config.vm.box = "generic/rhel8"
+
+  # Set the VM hostname
+  config.vm.hostname = "redhat-vm"
+
+  # Set the VM provider to libvirt
+  config.vm.provider :virtualbox do |vb|
+    vb.name = "redhat"
+    vb.memory = "2048"
+    vb.cpus = 2
+  end
+
+  # Configure the VM
+  config.vm.provision "shell", inline: <<-SHELL
+    # Set the username and password
+    useradd -m -p $(openssl passwd -1 redhatp) -s /bin/bash redhat
+
+    # Allow password authentication
+    sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
+
+    # Restart sshd
+    systemctl restart sshd
+  SHELL
+
+end
+

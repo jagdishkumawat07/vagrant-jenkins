@@ -1,0 +1,135 @@
+pipeline {
+  agent {
+    label 'slave'
+  }
+  options {
+    ansiColor('xterm')
+    timestamps ()
+    buildDiscarder(logRotator(daysToKeepStr: '365'))
+  }
+  parameters {
+    choice(
+      name: 'deployment',
+      choices: [
+        'deploy-vm',
+        'clean-up',
+        'reset-vm'
+      ],
+      description: 'vm to deploy or destroy.'
+    )
+    choice(
+      name: 'os_type',
+      choices: [
+        'ubuntu',
+        'ubuntu_clean-up',
+        'redhat_clean-up',
+        'redhat'
+      ],
+      description: 'select os to create vm.'
+    )
+    gitParameter (
+      name: 'deplrepo_revision',
+      description: 'deployment repository branch',
+      branchFilter: 'origin/.+',
+      defaultValue: 'origin/main',
+      type: 'PT_BRANCH',
+      quickFilterEnabled: false, selectedValue: 'NONE', sortMode: 'ASCENDING', tagFilter: '*',
+      listSize: '0'
+    )
+  }
+  environment {
+    GIT_CREDENTIAL_ID = 'GIT-access-token'
+  }
+  stages {
+    stage('Checkout repositories') {
+      steps {
+        // checkout deployment repo
+        checkout([
+          $class: 'GitSCM',
+          branches: [[name: "${params.deplrepo_revision}"]],
+          extensions: [
+            [$class: 'CleanBeforeCheckout', deleteUntrackedNestedRepositories: true],
+            [$class: 'CloneOption', noTags: false]
+          ],
+          userRemoteConfigs: [[
+            credentialsId: env.GIT_CREDENTIAL_ID,
+            url: 'https://github.com/shivangiverma369/vagrant-private'
+          ]]
+        ])
+        script {commitId = sh(returnStdout: true, script: 'git rev-parse --short HEAD')}
+      }
+    }
+   stage('Deploy virtual machine') {
+    steps {
+     script {
+      if (params.os_type == 'ubuntu' && params.deployment == 'deploy-vm') {
+        currentBuild.displayName = env.BUILD_NUMBER + "-" + params.os_type
+        component = params.os_type
+        sh "echo '${component}'"
+        sh "./run.sh '${component}'"
+      }
+      else if (params.os_type == 'redhat' && params.deployment == 'deploy-vm') {
+        currentBuild.displayName = env.BUILD_NUMBER + "-" + params.os_type
+        component = params.os_type
+        sh "echo '${component}'"
+        sh "./run.sh '${component}'"
+      }
+      else{
+        echo 'invalid combination'
+      }
+    }
+  }
+}
+  stage('Destroy virtual machine') {
+    steps {
+     script {
+      if (params.os_type == 'ubuntu_clean-up' && params.deployment == 'clean-up') {
+        currentBuild.displayName = env.BUILD_NUMBER + "-" + params.os_type
+        component = params.os_type
+        sh "echo '${component}'"
+        sh "./run.sh '${component}'"
+      }
+      else if (params.os_type == 'redhat_clean-up' && params.deployment == 'clean-up') {
+        currentBuild.displayName = env.BUILD_NUMBER + "-" + params.os_type
+        component = params.os_type
+        sh "echo '${component}'"
+        sh "./run.sh '${component}'"
+      }
+      else{
+        echo 'invalid combination'
+      }
+    }
+  }
+}
+  stage('Reset virtual machine') {
+    steps {
+     script {
+      if (params.deployment == 'reset-vm' && params.os_type == 'ubuntu') {
+        currentBuild.displayName = env.BUILD_NUMBER + "-" + params.os_type
+        sh "./run.sh 'reset-ubuntu'"
+      }
+      else if (params.deployment == 'reset-vm' && params.os_type == 'redhat') {
+        currentBuild.displayName = env.BUILD_NUMBER + "-" + params.os_type
+        sh "./run.sh 'reset-redhat'"
+      }
+      else{
+        echo 'invalid combination'
+      }
+
+    }
+  }
+ }
+}
+  post {
+    success {
+      script {
+        sh "echo 'Jenkins ${JOB_BASE_NAME}' '#${BUILD_DISPLAY_NAME} Successful: <${BUILD_URL}|Open>'"
+      }
+    }
+    failure {
+      script {
+        sh "echo 'Jenkins ${JOB_BASE_NAME}' '#${BUILD_DISPLAY_NAME} Failed: <${env.BUILD_URL}|Open>'"
+      }
+    }
+  }
+}

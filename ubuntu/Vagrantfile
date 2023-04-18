@@ -1,0 +1,19 @@
+Vagrant.configure("2") do |config|
+    config.vm.box = "ubuntu/focal64"
+    config.vm.network "public_network", bridge: "enp0s3"
+    config.vm.provider "virtualbox" do |vb|
+      vb.name = "ubuntu"
+      vb.memory = "2048"
+      vb.cpus = "2"
+    end
+  # Configure the VM
+    config.vm.provision "shell", inline: <<-SHELL
+  # Create a new user named "newuser"
+    useradd -m -s /bin/bash ubuntu
+  
+  # Set a password for the new user
+    echo "ubuntu:ubuntup" | chpasswd
+SHELL
+     
+    config.vm.synced_folder ".", "/vagrant", disabled: true
+  end
